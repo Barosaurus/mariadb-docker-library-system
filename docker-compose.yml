@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: library_mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword123
+      MYSQL_DATABASE: library_system
+      MYSQL_USER: library_user
+      MYSQL_PASSWORD: library_pass123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./database/sample-data.sql:/docker-entrypoint-initdb.d/02-sample-data.sql
+    networks:
+      - library-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: library_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mysql+pymysql://library_user:library_pass123@mariadb:3306/library_system
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - library-network
+    volumes:
+      - ./backend:/app
+    command: python app.py
+
+volumes:
+  mariadb_data:
+
+networks:
+  library-network:
+    driver: bridge
