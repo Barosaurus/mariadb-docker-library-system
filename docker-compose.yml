@@ -36,7 +36,7 @@ services:
       - library-network
     volumes:
       - ./backend:/app
-    command: python app.py
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:
   mariadb_data:
