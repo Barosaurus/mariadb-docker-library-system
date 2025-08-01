@@ -1,10 +1,21 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from models import Book
+from models.book import Book         # Direktes Import statt aus models
 from models.database import get_db
-from schemas import BookResponse
+from schemas.book import BookResponse  # Direktes Import statt aus schemas
 
 router = APIRouter()
+
+def apply_book_filters(query, isbn=None, title=None, author=None, category=None):
+    if isbn:
+        query = query.filter(Book.isbn == isbn)
+    if title:
+        query = query.filter(Book.title.like(f"%{title}%"))
+    if author:
+        query = query.filter(Book.author.like(f"%{author}%"))
+    if category:
+        query = query.filter(Book.category.like(f"%{category}%"))
+    return query
 
 @router.get("/", response_model=list[BookResponse])
 def get_books(
@@ -15,12 +26,5 @@ def get_books(
     db: Session = Depends(get_db)
 ):
     query = db.query(Book)
-    if isbn:
-        query = query.filter(Book.isbn == isbn)
-    if title:
-        query = query.filter(Book.title.like(f"%{title}%"))
-    if author:
-        query = query.filter(Book.author.like(f"%{author}%"))
-    if category:
-        query = query.filter(Book.category.like(f"%{category}%"))
+    query = apply_book_filters(query, isbn, title, author, category)
     return query.all()

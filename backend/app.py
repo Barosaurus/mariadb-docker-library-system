@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from models.database import get_db, Base, engine
 from routes import books, users, loans
+from sqlalchemy import text
+
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -29,11 +31,15 @@ app.include_router(loans.router, prefix="/api/loans", tags=["loans"])
 @app.get("/health")
 async def health_check(db: Session = Depends(get_db)):
     try:
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         return {"status": "healthy", "database": "connected"}
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"Database error: {str(e)}")
 
 @app.get("/")
 def root():
-    return {"message": "Bibliotheksverwaltungssystem API", "docs": "/docs"}
+    return {
+        "message": "Willkommen bei der Bibliotheksverwaltungssystem API!",
+        "docs_url": "/docs",
+        "health_url": "/health"
+    }

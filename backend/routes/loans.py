@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
-from models import Loan, Book
+from models.loan import Loan
+from models.book import Book
 from models.database import get_db
-from schemas import LoanResponse, LoanCreate, LoanUpdate
+from schemas.loan import LoanResponse, LoanCreate, LoanUpdate
 from typing import List
 from datetime import date, timedelta
 

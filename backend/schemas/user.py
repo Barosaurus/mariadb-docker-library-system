@@ -24,4 +24,4 @@ class UserResponse(UserBase):
     membership_date: date
 
     class Config:
-        from_attributes = True
+        orm_mode = True
