@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from models.book_model import Book
-from models.database import get_db
-from schemas.book_schema import BookCreate, BookUpdate, BookResponse
 from typing import List
+from models.book_model import Book
+from schemas.book_schema import BookResponse, BookCreate, BookUpdate
+from models.database import get_db
 
 router = APIRouter()
 
@@ -30,11 +30,14 @@ def get_books(
     query = apply_book_filters(query, isbn, title, author, category)
     return query.all()
 
-@router.get("/{book_id}", response_model=BookResponse)
-def get_book(book_id: int, db: Session = Depends(get_db)):
-    book = db.query(Book).filter(Book.id == book_id).first()
+@router.get("/{isbn}", response_model=BookResponse)
+def get_book(isbn: str, db: Session = Depends(get_db)):
+    book = db.query(Book).filter(Book.isbn == isbn).first()
     if not book:
-        raise HTTPException(status_code=404, detail="Book not found")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Book with ISBN {isbn} not found."
+        )
     return book
 
 @router.post("/", response_model=BookResponse)
@@ -42,7 +45,7 @@ def create_book(book: BookCreate, db: Session = Depends(get_db)):
     # Check if ISBN already exists
     existing_book = db.query(Book).filter(Book.isbn == book.isbn).first()
     if existing_book:
-        raise HTTPException(status_code=400, detail="Book with this ISBN already exists")
+        raise HTTPException(status_code=400, detail=f"Book with ISBN '{book.isbn}' already exists")
     
     db_book = Book(**book.dict())
     db.add(db_book)
@@ -54,13 +57,13 @@ def create_book(book: BookCreate, db: Session = Depends(get_db)):
 def update_book(book_id: int, book: BookUpdate, db: Session = Depends(get_db)):
     db_book = db.query(Book).filter(Book.id == book_id).first()
     if not db_book:
-        raise HTTPException(status_code=404, detail="Book not found")
+        raise HTTPException(status_code=404, detail=f"Book with ID {book_id} not found")
     
     # Check ISBN uniqueness if being updated
     if book.isbn and book.isbn != db_book.isbn:
         existing_book = db.query(Book).filter(Book.isbn == book.isbn).first()
         if existing_book:
-            raise HTTPException(status_code=400, detail="Book with this ISBN already exists")
+            raise HTTPException(status_code=400, detail=f"Book with ISBN '{book.isbn}' already exists")
     
     for key, value in book.dict(exclude_unset=True).items():
         setattr(db_book, key, value)
@@ -71,10 +74,12 @@ def update_book(book_id: int, book: BookUpdate, db: Session = Depends(get_db)):
 
 @router.delete("/{book_id}")
 def delete_book(book_id: int, db: Session = Depends(get_db)):
-    db_book = db.query(Book).filter(Book.id == book_id).first()
-    if not db_book:
-        raise HTTPException(status_code=404, detail="Book not found")
-    
-    db.delete(db_book)
+    book = db.query(Book).filter(Book.id == book_id).first()
+    if not book:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Book with id {book_id} not found."
+        )
+    db.delete(book)
     db.commit()
-    return {"message": "Book deleted successfully"}
+    return {"message": f"Book {book_id} deleted."}

@@ -12,16 +12,16 @@ router = APIRouter()
 
 @router.get("/", response_model=List[LoanResponse])
 def get_loans(
-    user_id: int = Query(None, description="Filter by user ID"),
-    book_id: int = Query(None, description="Filter by book ID"),
+    user_number: str = Query(None, description="Filter by user number"),
+    book_isbn: str = Query(None, description="Filter by book ISBN"),
     status: str = Query(None, description="Filter by status: active, returned, overdue"),
     db: Session = Depends(get_db)
 ):
     query = db.query(Loan)
-    if user_id:
-        query = query.filter(Loan.user_id == user_id)
-    if book_id:
-        query = query.filter(Loan.book_id == book_id)
+    if user_number:
+        query = query.filter(Loan.user_number == user_number)
+    if book_isbn:
+        query = query.filter(Loan.book_isbn == book_isbn)
     if status:
         if status == "active":
             query = query.filter(Loan.return_date == None)
@@ -44,45 +44,36 @@ def get_loans(
 def get_loan(loan_id: int, db: Session = Depends(get_db)):
     loan = db.query(Loan).filter(Loan.id == loan_id).first()
     if not loan:
-        raise HTTPException(status_code=404, detail="Loan not found")
-    if not loan:
-        raise HTTPException(status_code=404, detail="Loan not found")
-    book_title = loan.book.title if loan.book else ""
-    user_name = f"{loan.user.first_name} {loan.user.last_name}" if loan.user else ""
-    loan_dict = loan.__dict__.copy()
-    loan_dict["book_title"] = book_title
-    loan_dict["user_name"] = user_name
-    return loan_dict
+        raise HTTPException(
+            status_code=404,
+            detail=f"Loan with id {loan_id} not found."
+        )
+    return loan
 
 @router.post("/", response_model=LoanResponse)
 def create_loan(loan: LoanCreate, db: Session = Depends(get_db)):
-    # Überprüfe, ob User existiert
     user = db.query(User).filter(User.id == loan.user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Überprüfe, ob Buch existiert und verfügbar ist
+        raise HTTPException(status_code=404, detail=f"User with id {loan.user_id} not found.")
     book = db.query(Book).filter(Book.id == loan.book_id).first()
     if not book:
-        raise HTTPException(status_code=404, detail="Book not found")
-    if book.available_copies <= 0:
-        raise HTTPException(status_code=400, detail="Book is not available")
-    
-    # Erstelle die Ausleihe
-    db_loan = Loan(
+        raise HTTPException(status_code=404, detail=f"Book with id {loan.book_id} not found.")
+    # NEU: Prüfe auf verfügbare Exemplare
+    if book.available_copies < 1:
+        raise HTTPException(status_code=400, detail="No available copies for this book.")
+    # Loan anlegen & Buchbestand reduzieren
+    new_loan = Loan(
         user_id=loan.user_id,
         book_id=loan.book_id,
         loan_date=date.today(),
-        due_date=loan.due_date
+        due_date=loan.due_date,
+        return_date=None
     )
-    
-    # Reduziere die verfügbaren Kopien
     book.available_copies -= 1
-    
-    db.add(db_loan)
+    db.add(new_loan)
     db.commit()
-    db.refresh(db_loan)
-    return db_loan
+    db.refresh(new_loan)
+    return new_loan
 
 @router.put("/{loan_id}/return", response_model=LoanResponse)
 def return_book(loan_id: int, db: Session = Depends(get_db)):
@@ -118,15 +109,12 @@ def update_loan(loan_id: int, loan: LoanUpdate, db: Session = Depends(get_db)):
 
 @router.delete("/{loan_id}")
 def delete_loan(loan_id: int, db: Session = Depends(get_db)):
-    db_loan = db.query(Loan).filter(Loan.id == loan_id).first()
-    if not db_loan:
-        raise HTTPException(status_code=404, detail="Loan not found")
-    
-    # Wenn noch aktiv, Kopien zurückgeben
-    if not db_loan.return_date:
-        book = db.query(Book).filter(Book.id == db_loan.book_id).first()
-        book.available_copies += 1
-    
-    db.delete(db_loan)
+    loan = db.query(Loan).filter(Loan.id == loan_id).first()
+    if not loan:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Loan with id {loan_id} not found."
+        )
+    db.delete(loan)
     db.commit()
-    return {"message": "Loan deleted successfully"}
+    return {"message": f"Loan {loan_id} deleted."}

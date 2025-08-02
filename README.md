@@ -29,10 +29,16 @@ cd mariadb-docker-library-system
 
 ---
 
-## 3. Projekt starten
+## 3. Projekt starten / Projekt beenden
 
 ```bash
+#Programm starten
 docker compose up --build
+```
+
+```bash
+#Programm beenden
+docker compose down
 ```
 
 ---

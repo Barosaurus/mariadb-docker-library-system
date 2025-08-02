@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from models.database import get_db
-from models.user_model import User, UserStatus
-from schemas.user_schema import UserCreate, UserUpdate, UserResponse
 from typing import List
+from models.user_model import User
+from models.loan_model import Loan
+from schemas.user_schema import UserResponse, UserCreate, UserUpdate
+from models.database import get_db
 
 router = APIRouter()
 
@@ -26,11 +27,11 @@ def get_users(
         query = query.filter(User.status == status)
     return query.all()
 
-@router.get("/{user_id}")
-def get_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
+@router.get("/{user_number}", response_model=UserResponse)
+def get_user(user_number: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.user_number == user_number).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=f"User with user_number {user_number} not found.")
     return user
 
 @router.post("/", response_model=UserResponse)
@@ -69,10 +70,15 @@ def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
 
 @router.delete("/{user_id}")
 def delete_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.id == user_id).first()
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    db.delete(db_user)
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User with id {user_id} not found.")
+    active_loans = db.query(Loan).filter(Loan.user_id == user_id).all()
+    if active_loans:
+        raise HTTPException(
+            status_code=400,
+            detail=f"User with id {user_id} cannot be deleted: active loans exist."
+        )
+    db.delete(user)
     db.commit()
-    return {"message": "User deleted successfully"}
+    return {"message": f"User {user_id} deleted."}

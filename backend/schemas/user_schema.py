@@ -20,10 +20,8 @@ class UserUpdate(BaseModel):
     status: Optional[UserStatus] = None
 
 class UserResponse(UserBase):
-    id: int
     user_number: str
     registration_date: Optional[date] = None
     status: UserStatus
-    
     class Config:
         from_attributes = True

@@ -14,12 +14,12 @@ INSERT INTO users (user_number, first_name, last_name, email, phone) VALUES
 ('DOZ001', 'Prof. Dr.', 'Mueller', 'mueller@dhbw.de', '+49111222333');
 
 -- Sample Ausleihvorgänge
-INSERT INTO loans (book_id, user_id, loan_date, due_date, status) VALUES
-(1, 1, '2024-01-15', '2024-02-15', 'active'),
-(2, 2, '2024-01-10', '2024-02-10', 'returned'),
-(3, 1, '2024-01-20', '2024-02-20', 'active');
+INSERT INTO loans (book_isbn, user_number, loan_date, due_date, status) VALUES
+('9783446440814', 'STU001', '2024-01-15', '2024-02-15', 'active'),
+('9783836244893', 'STU002', '2024-01-10', '2024-02-10', 'returned'),
+('9783499626418', 'STU001', '2024-01-20', '2024-02-20', 'active');
 
 -- Update available_copies nach Ausleihen
 UPDATE books SET available_copies = total_copies - (
-    SELECT COUNT(*) FROM loans WHERE book_id = books.id AND status = 'active'
+    SELECT COUNT(*) FROM loans WHERE book_isbn = books.isbn AND status = 'active'
 );

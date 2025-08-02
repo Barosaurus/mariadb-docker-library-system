@@ -23,7 +23,5 @@ class BookUpdate(BaseModel):
     total_copies: Optional[int] = None
 
 class BookResponse(BookBase):
-    id: int
-    
     class Config:
         from_attributes = True

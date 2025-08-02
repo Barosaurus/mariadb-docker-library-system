@@ -3,8 +3,8 @@ from typing import Optional
 from datetime import date
 
 class LoanBase(BaseModel):
-    user_id: int
-    book_id: int
+    user_number: str
+    book_isbn: str
     due_date: date
 
 class LoanCreate(LoanBase):
@@ -15,11 +15,9 @@ class LoanUpdate(BaseModel):
     due_date: Optional[date] = None
 
 class LoanResponse(LoanBase):
-    id: int
     loan_date: date
     return_date: Optional[date] = None
     book_title: str
     user_name: str
-    
     class Config:
         from_attributes = True
