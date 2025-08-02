@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from models.user import User
 from models.database import get_db
-from schemas.user import UserResponse, UserCreate, UserUpdate
+from models.user_model import User, UserStatus
+from schemas.user_schema import UserCreate, UserUpdate, UserResponse
 from typing import List
 
 router = APIRouter()
@@ -26,7 +26,7 @@ def get_users(
         query = query.filter(User.status == status)
     return query.all()
 
-@router.get("/{user_id}", response_model=UserResponse)
+@router.get("/{user_id}")
 def get_user(user_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:

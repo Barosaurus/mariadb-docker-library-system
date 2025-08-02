@@ -3,6 +3,7 @@ from sqlalchemy.sql import func
 from models.database import Base
 import enum
 
+
 class UserStatus(enum.Enum):
     active = "active"
     inactive = "inactive"

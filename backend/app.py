@@ -2,8 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from models.database import get_db, Base, engine
-from routes import books, users, loans
-from sqlalchemy import text
+from routes import users_route, books_route, loans_route
 
 
 # Create tables
@@ -24,9 +23,9 @@ app.add_middleware(
 )
 
 # Register all routes
-app.include_router(books.router, prefix="/api/books", tags=["books"])
-app.include_router(users.router, prefix="/api/users", tags=["users"])
-app.include_router(loans.router, prefix="/api/loans", tags=["loans"])
+app.include_router(books_route.router, prefix="/api/books", tags=["books"])
+app.include_router(users_route.router, prefix="/api/users", tags=["users"])
+app.include_router(loans_route.router, prefix="/api/loans", tags=["loans"])
 
 @app.get("/health")
 async def health_check(db: Session = Depends(get_db)):

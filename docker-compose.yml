@@ -23,6 +23,9 @@ services:
       - mariadb
     environment:
       DATABASE_URL: mysql+pymysql://library_user:library_pass123@mariadb:3306/library_system
+    command: >
+      sh -c "until nc -z mariadb 3306; do sleep 1; done;
+             uvicorn app:app --host 0.0.0.0 --port 8000 --reload"
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
