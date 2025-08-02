@@ -29,14 +29,30 @@ def get_loans(
             query = query.filter(Loan.return_date != None)
         elif status == "overdue":
             query = query.filter(Loan.return_date == None, Loan.due_date < date.today())
-    return query.all()
+    loans = query.all()
+    result = []
+    for loan in loans:
+        book_title = loan.book.title if loan.book else ""
+        user_name = f"{loan.user.first_name} {loan.user.last_name}" if loan.user else ""
+        loan_dict = loan.__dict__.copy()
+        loan_dict["book_title"] = book_title
+        loan_dict["user_name"] = user_name
+        result.append(loan_dict)
+    return result
 
 @router.get("/{loan_id}", response_model=LoanResponse)
 def get_loan(loan_id: int, db: Session = Depends(get_db)):
     loan = db.query(Loan).filter(Loan.id == loan_id).first()
     if not loan:
         raise HTTPException(status_code=404, detail="Loan not found")
-    return loan
+    if not loan:
+        raise HTTPException(status_code=404, detail="Loan not found")
+    book_title = loan.book.title if loan.book else ""
+    user_name = f"{loan.user.first_name} {loan.user.last_name}" if loan.user else ""
+    loan_dict = loan.__dict__.copy()
+    loan_dict["book_title"] = book_title
+    loan_dict["user_name"] = user_name
+    return loan_dict
 
 @router.post("/", response_model=LoanResponse)
 def create_loan(loan: LoanCreate, db: Session = Depends(get_db)):

@@ -18,6 +18,8 @@ class LoanResponse(LoanBase):
     id: int
     loan_date: date
     return_date: Optional[date] = None
+    book_title: str
+    user_name: str
     
     class Config:
         from_attributes = True
