@@ -1,31 +1,48 @@
-# mariadb-docker-library-system
 
-Datenbanken Hausarbeit: Developing Applications with MariaDB & Containers via Docker (mit Bibliotheksverwaltungssystem als PoC)
 
-## Features
+# Bibliotheksverwaltungssystem mit MariaDB & Docker
 
-- Bücherverwaltung (CRUD, Suche nach ISBN, Titel, Autor, Kategorie)
-- Benutzerverwaltung (CRUD, Suche nach Name, E-Mail, Status)
-- Ausleihmanagement (Buch ausleihen, zurückgeben)
-- Moderne API mit FastAPI und MariaDB
-- Vollständig containerisiert mit Docker Compose
+Dieses Repository enthält ein containerisiertes Bibliotheksverwaltungssystem auf Basis von FastAPI und MariaDB. Die folgenden Schritte zeigen, wie Sie das Projekt von Grund auf starten und testen können.
 
-## Schnellstart
+---
+
+## 1. Vorbereitung: Docker bereinigen
+
+Um sicherzustellen, dass Sie mit einer sauberen Basis starten, führen Sie bitte folgende Befehle aus:
 
 ```bash
-# Projekt clonen
-git clone https://github.com/Barosaurus/mariadb-docker-library-system.git
-cd mariadb-docker-library-system
-
-# Docker-Container starten
-docker-compose up --build
+# (Optional, aber empfohlen) Alte Docker-Container, Images und Builder entfernen
+docker compose down --volumes --remove-orphans
+docker builder prune --all --force
+docker image prune --all --force
+docker volume prune --force
 ```
 
-## API testen
+---
 
-Swagger-UI: [http://localhost:8000/docs](http://localhost:8000/docs)
+## 2. Projekt herunterladen
 
-**Beispiele:**
+```bash
+git clone https://github.com/Barosaurus/mariadb-docker-library-system.git
+cd mariadb-docker-library-system
+```
+
+---
+
+## 3. Projekt starten
+
+```bash
+docker compose up --build
+```
+
+---
+
+## 4. API testen & nutzen
+
+Öffnen Sie die Swagger-UI im Browser:
+[http://localhost:8000/docs](http://localhost:8000/docs)
+
+**Beispiele für API-Requests:**
 ```bash
 # Alle Bücher abrufen
 curl -X GET "http://localhost:8000/api/books"
@@ -34,10 +51,22 @@ curl -X GET "http://localhost:8000/api/books"
 curl -X GET "http://localhost:8000/api/books?author=Douglas%20Adams"
 
 # Benutzer anlegen
-curl -X POST "http://localhost:8000/api/users" -H "Content-Type: application/json" -d '{"first_name":"Max","last_name":"Mustermann","email":"max@uni.de"}'
+curl -X POST "http://localhost:8000/api/users" \
+  -H "Content-Type: application/json" \
+  -d '{"first_name":"Max","last_name":"Mustermann","email":"max@uni.de","phone":"123456","membership_status":"active"}'
 ```
 
-## Vorteile von Containern
+---
+
+## Hinweise
+
+- Die Datenbank wird beim ersten Start automatisch mit Beispieldaten gefüllt.
+- Änderungen am Code erfordern ggf. einen Neustart mit `docker compose up --build`.
+- Die API ist über Swagger-UI und per curl nutzbar.
+
+---
+
+Viel Erfolg beim Arbeiten mit dem System!
 
 - Keine lokale Datenbankinstallation nötig
 - Reproduzierbare Umgebung für Entwicklung und Tests
@@ -50,5 +79,3 @@ curl -X POST "http://localhost:8000/api/users" -H "Content-Type: application/jso
 - Datenbank: `library_system`
 
 ---
-
-**Viel Erfolg bei deiner Hausarbeit!**

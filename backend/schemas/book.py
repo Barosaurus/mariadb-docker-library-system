@@ -7,8 +7,8 @@ class BookBase(BaseModel):
     author: str
     category: Optional[str] = None
     publication_year: Optional[int] = None
-    available_copies: Optional[int] = None
-    total_copies: Optional[int] = None
+    available_copies: Optional[int] = 1
+    total_copies: Optional[int] = 1
 
 class BookCreate(BookBase):
     pass
@@ -24,6 +24,6 @@ class BookUpdate(BaseModel):
 
 class BookResponse(BookBase):
     id: int
-
+    
     class Config:
         from_attributes = True

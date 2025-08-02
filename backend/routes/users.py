@@ -4,7 +4,6 @@ from models.user import User
 from models.database import get_db
 from schemas.user import UserResponse, UserCreate, UserUpdate
 from typing import List
-from datetime import date
 
 router = APIRouter()
 
@@ -24,14 +23,26 @@ def get_users(
             (User.last_name.like(f"%{name}%"))
         )
     if status:
-        query = query.filter(User.membership_status == status)
+        query = query.filter(User.status == status)
     return query.all()
+
+@router.get("/{user_id}", response_model=UserResponse)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 @router.post("/", response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    db_user = User(
-        **user.dict()
-    )
+    # Check if email or user_number already exists
+    existing_user = db.query(User).filter(
+        (User.email == user.email) | (User.user_number == user.user_number)
+    ).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="User with this email or user number already exists")
+    
+    db_user = User(**user.dict())
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -42,6 +53,12 @@ def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.id == user_id).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check email uniqueness if being updated
+    if user.email and user.email != db_user.email:
+        existing_user = db.query(User).filter(User.email == user.email).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="User with this email already exists")
     
     for key, value in user.dict(exclude_unset=True).items():
         setattr(db_user, key, value)
