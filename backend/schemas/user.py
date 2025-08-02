@@ -21,7 +21,6 @@ class UserUpdate(BaseModel):
 
 class UserResponse(UserBase):
     id: int
-    membership_date: date
 
     class Config:
         orm_mode = True

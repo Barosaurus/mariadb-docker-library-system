@@ -30,8 +30,7 @@ def get_users(
 @router.post("/", response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db_user = User(
-        **user.dict(),
-        membership_date=date.today()
+        **user.dict()
     )
     db.add(db_user)
     db.commit()

@@ -9,5 +9,4 @@ class User(Base):
     last_name = Column(String(50), nullable=False)
     email = Column(String(100), unique=True, index=True, nullable=False)
     phone = Column(String(20))
-    membership_date = Column(Date, nullable=False)
     membership_status = Column(String(20), nullable=False, default="active")
