@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from models.user_model import User
 from models.loan_model import Loan
-from schemas.user_schema import UserResponse, UserCreate, UserUpdate
+from schema.user_schema import UserResponse, UserCreate, UserUpdate
 from models.database import get_db
 
 router = APIRouter()

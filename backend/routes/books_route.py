@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
 from models.book_model import Book
-from schemas.book_schema import BookResponse, BookCreate, BookUpdate
+from schema.book_schema import BookResponse, BookCreate, BookUpdate
 from models.database import get_db
 
 router = APIRouter()

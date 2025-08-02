@@ -4,7 +4,7 @@ from models.loan_model import Loan
 from models.book_model import Book
 from models.user_model import User
 from models.database import get_db
-from schemas.loan_schema import LoanCreate, LoanUpdate, LoanResponse
+from schema.loan_schema import LoanCreate, LoanUpdate, LoanResponse
 from typing import List
 from datetime import date, timedelta
 
