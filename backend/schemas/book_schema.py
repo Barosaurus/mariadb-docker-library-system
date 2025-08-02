@@ -11,16 +11,22 @@ class BookBase(BaseModel):
     total_copies: Optional[int] = 1
 
 class BookCreate(BookBase):
-    pass
+    isbn: str
+    title: str
+    author: str
+    category: str
+    publication_year: int
+    available_copies: int
+    total_copies: int
 
 class BookUpdate(BaseModel):
-    isbn: Optional[str] = None
-    title: Optional[str] = None
-    author: Optional[str] = None
-    category: Optional[str] = None
-    publication_year: Optional[int] = None
-    available_copies: Optional[int] = None
-    total_copies: Optional[int] = None
+    isbn: str
+    title: str
+    author: str
+    category: str
+    publication_year: int
+    available_copies: int
+    total_copies: int
 
 class BookResponse(BookBase):
     class Config:

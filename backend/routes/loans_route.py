@@ -37,7 +37,8 @@ def get_loans(
         loan_dict = loan.__dict__.copy()
         loan_dict["book_title"] = book_title
         loan_dict["user_name"] = user_name
-        result.append(loan_dict)
+        loan_dict["id"] = loan.id
+        result.append(LoanResponse(**loan_dict))
     return result
 
 @router.get("/{loan_id}", response_model=LoanResponse)
@@ -78,7 +79,7 @@ def create_loan(loan: LoanCreate, db: Session = Depends(get_db)):
     loan_dict = new_loan.__dict__.copy()
     loan_dict["book_title"] = book.title
     loan_dict["user_name"] = f"{user.first_name} {user.last_name}"
-    return loan_dict
+    return LoanResponse(**loan_dict)
 
 @router.put("/{loan_id}/return", response_model=LoanResponse)
 def return_book(loan_id: int, db: Session = Depends(get_db)):
@@ -103,7 +104,8 @@ def return_book(loan_id: int, db: Session = Depends(get_db)):
     loan_dict = db_loan.__dict__.copy()
     loan_dict["book_title"] = book.title if book else ""
     loan_dict["user_name"] = f"{user.first_name} {user.last_name}" if user else ""
-    return loan_dict
+    loan_dict["id"] = db_loan.id
+    return LoanResponse(**loan_dict)
 
 @router.put("/{loan_id}", response_model=LoanResponse)
 def update_loan(loan_id: int, loan: LoanUpdate, db: Session = Depends(get_db)):
@@ -123,7 +125,8 @@ def update_loan(loan_id: int, loan: LoanUpdate, db: Session = Depends(get_db)):
     loan_dict = db_loan.__dict__.copy()
     loan_dict["book_title"] = book.title if book else ""
     loan_dict["user_name"] = f"{user.first_name} {user.last_name}" if user else ""
-    return loan_dict
+    loan_dict["id"] = db_loan.id
+    return LoanResponse(**loan_dict)
 
 @router.delete("/{loan_id}")
 def delete_loan(loan_id: int, db: Session = Depends(get_db)):

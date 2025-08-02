@@ -57,7 +57,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         (User.email == user.email) | (User.user_number == user.user_number)
     ).first()
     if existing_user:
-        raise HTTPException(status_code=400, detail="User with this email or user number already exists")
+        raise HTTPException(status_code=400, detail="User with this user number already exists")
     
     db_user = User(**user.dict())
     db.add(db_user)
