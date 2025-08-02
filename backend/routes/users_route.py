@@ -16,16 +16,32 @@ def get_users(
     db: Session = Depends(get_db)
 ):
     query = db.query(User)
+    search_criteria = []
+    
     if email:
         query = query.filter(User.email == email)
+        search_criteria.append(f"E-Mail '{email}'")
     if name:
         query = query.filter(
             (User.first_name.like(f"%{name}%")) | 
             (User.last_name.like(f"%{name}%"))
         )
+        search_criteria.append(f"Name '{name}'")
     if status:
         query = query.filter(User.status == status)
-    return query.all()
+        search_criteria.append(f"Status '{status}'")
+    
+    users = query.all()
+    
+    # Wenn Suchkriterien angegeben wurden, aber keine Benutzer gefunden wurden
+    if search_criteria and not users:
+        criteria_text = ", ".join(search_criteria)
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Kein Benutzer mit {criteria_text} gefunden."
+        )
+    
+    return users
 
 @router.get("/{user_number}", response_model=UserResponse)
 def get_user(user_number: str, db: Session = Depends(get_db)):
@@ -49,11 +65,11 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
-@router.put("/{user_id}", response_model=UserResponse)
-def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.id == user_id).first()
+@router.put("/{user_number}", response_model=UserResponse)
+def update_user(user_number: str, user: UserUpdate, db: Session = Depends(get_db)):
+    db_user = db.query(User).filter(User.user_number == user_number).first()
     if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail=f"User with user_number {user_number} not found")
     
     # Check email uniqueness if being updated
     if user.email and user.email != db_user.email:
@@ -68,17 +84,17 @@ def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
-@router.delete("/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
+@router.delete("/{user_number}")
+def delete_user(user_number: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.user_number == user_number).first()
     if not user:
-        raise HTTPException(status_code=404, detail=f"User with id {user_id} not found.")
-    active_loans = db.query(Loan).filter(Loan.user_id == user_id).all()
+        raise HTTPException(status_code=404, detail=f"User with user_number {user_number} not found.")
+    active_loans = db.query(Loan).filter(Loan.user_number == user_number).all()
     if active_loans:
         raise HTTPException(
             status_code=400,
-            detail=f"User with id {user_id} cannot be deleted: active loans exist."
+            detail=f"User with user_number {user_number} cannot be deleted: active loans exist."
         )
     db.delete(user)
     db.commit()
-    return {"message": f"User {user_id} deleted."}
+    return {"message": f"User with user_number {user_number} deleted."}

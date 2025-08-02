@@ -27,8 +27,29 @@ def get_books(
     db: Session = Depends(get_db)
 ):
     query = db.query(Book)
+    search_criteria = []
+    
+    if isbn:
+        search_criteria.append(f"ISBN '{isbn}'")
+    if title:
+        search_criteria.append(f"Titel '{title}'")
+    if author:
+        search_criteria.append(f"Autor '{author}'")
+    if category:
+        search_criteria.append(f"Kategorie '{category}'")
+    
     query = apply_book_filters(query, isbn, title, author, category)
-    return query.all()
+    books = query.all()
+    
+    # Wenn Suchkriterien angegeben wurden, aber keine Bücher gefunden wurden
+    if search_criteria and not books:
+        criteria_text = ", ".join(search_criteria)
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Kein Buch mit {criteria_text} gefunden."
+        )
+    
+    return books
 
 @router.get("/{isbn}", response_model=BookResponse)
 def get_book(isbn: str, db: Session = Depends(get_db)):
@@ -53,11 +74,11 @@ def create_book(book: BookCreate, db: Session = Depends(get_db)):
     db.refresh(db_book)
     return db_book
 
-@router.put("/{book_id}", response_model=BookResponse)
-def update_book(book_id: int, book: BookUpdate, db: Session = Depends(get_db)):
-    db_book = db.query(Book).filter(Book.id == book_id).first()
+@router.put("/{isbn}", response_model=BookResponse)
+def update_book(isbn: str, book: BookUpdate, db: Session = Depends(get_db)):
+    db_book = db.query(Book).filter(Book.isbn == isbn).first()
     if not db_book:
-        raise HTTPException(status_code=404, detail=f"Book with ID {book_id} not found")
+        raise HTTPException(status_code=404, detail=f"Book with ISBN {isbn} not found")
     
     # Check ISBN uniqueness if being updated
     if book.isbn and book.isbn != db_book.isbn:
@@ -72,14 +93,14 @@ def update_book(book_id: int, book: BookUpdate, db: Session = Depends(get_db)):
     db.refresh(db_book)
     return db_book
 
-@router.delete("/{book_id}")
-def delete_book(book_id: int, db: Session = Depends(get_db)):
-    book = db.query(Book).filter(Book.id == book_id).first()
+@router.delete("/{isbn}")
+def delete_book(isbn: str, db: Session = Depends(get_db)):
+    book = db.query(Book).filter(Book.isbn == isbn).first()
     if not book:
         raise HTTPException(
             status_code=404,
-            detail=f"Book with id {book_id} not found."
+            detail=f"Book with ISBN {isbn} not found."
         )
     db.delete(book)
     db.commit()
-    return {"message": f"Book {book_id} deleted."}
+    return {"message": f"Book with ISBN {isbn} deleted."}
