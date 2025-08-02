@@ -6,7 +6,6 @@ from models.database import get_db, Base, engine
 from routes import users_route, books_route, loans_route
 
 
-# Create tables
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -23,7 +22,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register all routes
 app.include_router(books_route.router, prefix="/api/books", tags=["books"])
 app.include_router(users_route.router, prefix="/api/users", tags=["users"])
 app.include_router(loans_route.router, prefix="/api/loans", tags=["loans"])

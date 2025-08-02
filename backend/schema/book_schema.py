@@ -19,6 +19,12 @@ class BookCreate(BookBase):
     available_copies: int
     total_copies: int
 
+    @classmethod
+    def validate(cls, value):
+        if value['total_copies'] < value['available_copies']:
+            raise ValueError('total_copies darf nicht kleiner als available_copies sein!')
+        return value
+
 class BookUpdate(BaseModel):
     isbn: str
     title: str
@@ -27,6 +33,12 @@ class BookUpdate(BaseModel):
     publication_year: int
     available_copies: int
     total_copies: int
+
+    @classmethod
+    def validate(cls, value):
+        if value['total_copies'] < value['available_copies']:
+            raise ValueError('total_copies darf nicht kleiner als available_copies sein!')
+        return value
 
 class BookResponse(BookBase):
     class Config:

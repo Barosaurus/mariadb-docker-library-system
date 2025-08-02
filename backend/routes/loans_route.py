@@ -49,7 +49,13 @@ def get_loan(loan_id: int, db: Session = Depends(get_db)):
             status_code=404,
             detail=f"Loan with id {loan_id} not found."
         )
-    return loan
+    book_title = loan.book.title if loan.book else ""
+    user_name = f"{loan.user.first_name} {loan.user.last_name}" if loan.user else ""
+    loan_dict = loan.__dict__.copy()
+    loan_dict["book_title"] = book_title
+    loan_dict["user_name"] = user_name
+    loan_dict["id"] = loan.id
+    return LoanResponse(**loan_dict)
 
 @router.post("/", response_model=LoanResponse)
 def create_loan(loan: LoanCreate, db: Session = Depends(get_db)):

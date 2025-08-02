@@ -17,6 +17,9 @@ class LoanUpdate(BaseModel):
 
 class LoanResponse(LoanBase):
     id: int
+    user_number: str
+    book_isbn: str
+    due_date: date
     loan_date: date
     return_date: Optional[date] = None
     book_title: str
@@ -25,5 +28,4 @@ class LoanResponse(LoanBase):
         from_attributes = True
 
 def some_function(loan_dict):
-    # some processing with loan_dict
     return LoanResponse(**loan_dict)
