@@ -65,10 +65,8 @@ def create_loan(loan: LoanCreate, db: Session = Depends(get_db)):
     book = db.query(Book).filter(Book.isbn == loan.book_isbn).first()
     if not book:
         raise HTTPException(status_code=404, detail=f"Book with ISBN {loan.book_isbn} not found.")
-    # NEU: Prüfe auf verfügbare Exemplare
     if book.available_copies < 1:
         raise HTTPException(status_code=400, detail="No available copies for this book.")
-    # Loan anlegen & Buchbestand reduzieren
     new_loan = Loan(
         user_number=loan.user_number,
         book_isbn=loan.book_isbn,
@@ -81,7 +79,6 @@ def create_loan(loan: LoanCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_loan)
     
-    # Ergänze die zusätzlichen Felder für die Response
     loan_dict = new_loan.__dict__.copy()
     loan_dict["book_title"] = book.title
     loan_dict["user_name"] = f"{user.first_name} {user.last_name}"
@@ -95,17 +92,15 @@ def return_book(loan_id: int, db: Session = Depends(get_db)):
     if db_loan.return_date:
         raise HTTPException(status_code=400, detail="Book already returned")
     
-    # Setze das Rückgabedatum
     db_loan.return_date = date.today()
     
-    # Erhöhe die verfügbaren Kopien
+    #Erhöhen der verfügbaren Exemplare des Buches
     book = db.query(Book).filter(Book.isbn == db_loan.book_isbn).first()
     book.available_copies += 1
     
     db.commit()
     db.refresh(db_loan)
     
-    # Ergänze die zusätzlichen Felder für die Response
     user = db.query(User).filter(User.user_number == db_loan.user_number).first()
     loan_dict = db_loan.__dict__.copy()
     loan_dict["book_title"] = book.title if book else ""
@@ -125,7 +120,6 @@ def update_loan(loan_id: int, loan: LoanUpdate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_loan)
     
-    # Ergänze die zusätzlichen Felder für die Response
     book = db.query(Book).filter(Book.isbn == db_loan.book_isbn).first()
     user = db.query(User).filter(User.user_number == db_loan.user_number).first()
     loan_dict = db_loan.__dict__.copy()

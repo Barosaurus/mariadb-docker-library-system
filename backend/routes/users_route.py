@@ -33,7 +33,7 @@ def get_users(
     
     users = query.all()
     
-    # Wenn Suchkriterien angegeben wurden, aber keine Benutzer gefunden wurden
+    # Meldung, wenn keine Benutzer gefunden wurden
     if search_criteria and not users:
         criteria_text = ", ".join(search_criteria)
         raise HTTPException(
@@ -52,7 +52,7 @@ def get_user(user_number: str, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    # Check if email or user_number already exists
+    # Überprüfen, ob die E-Mail oder die Benutzer-Nummer bereits existiert
     existing_user = db.query(User).filter(
         (User.email == user.email) | (User.user_number == user.user_number)
     ).first()
@@ -71,7 +71,6 @@ def update_user(user_number: str, user: UserUpdate, db: Session = Depends(get_db
     if not db_user:
         raise HTTPException(status_code=404, detail=f"User with user_number {user_number} not found")
     
-    # Check email uniqueness if being updated
     if user.email and user.email != db_user.email:
         existing_user = db.query(User).filter(User.email == user.email).first()
         if existing_user:

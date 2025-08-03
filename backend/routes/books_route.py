@@ -41,7 +41,7 @@ def get_books(
     query = apply_book_filters(query, isbn, title, author, category)
     books = query.all()
     
-    # Wenn Suchkriterien angegeben wurden, aber keine Bücher gefunden wurden
+    # Meldung, wenn keine Bücher gefunden wurden
     if search_criteria and not books:
         criteria_text = ", ".join(search_criteria)
         raise HTTPException(
@@ -63,7 +63,7 @@ def get_book(isbn: str, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=BookResponse)
 def create_book(book: BookCreate, db: Session = Depends(get_db)):
-    # Check if ISBN already exists
+    #Überprüfen, ob die ISBN bereits existiert
     existing_book = db.query(Book).filter(Book.isbn == book.isbn).first()
     if existing_book:
         raise HTTPException(status_code=400, detail=f"Book with ISBN '{book.isbn}' already exists")
@@ -80,7 +80,7 @@ def update_book(isbn: str, book: BookUpdate, db: Session = Depends(get_db)):
     if not db_book:
         raise HTTPException(status_code=404, detail=f"Book with ISBN {isbn} not found")
     
-    # Check ISBN uniqueness if being updated
+    #Überprüfen, ob die ISBN bereits existiert, außer für das aktuelle Buch
     if book.isbn and book.isbn != db_book.isbn:
         existing_book = db.query(Book).filter(Book.isbn == book.isbn).first()
         if existing_book:
