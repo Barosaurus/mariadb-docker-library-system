@@ -1,14 +1,12 @@
+# 📚 Bibliotheksverwaltungssystem mit FastAPI, MariaDB & Docker
 
-
-# Bibliotheksverwaltungssystem mit MariaDB & Docker
-
-Dieses Repository enthält ein containerisiertes Bibliotheksverwaltungssystem auf Basis von FastAPI und MariaDB. Die folgenden Schritte zeigen, wie Sie das Projekt von Grund auf starten und testen können.
+Dieses Repository enthält ein containerisiertes Bibliotheksverwaltungssystem zur Verwaltung von Büchern, Benutzern und Ausleihen. Das Projekt dient als Proof-of-Concept (PoC) für moderne Softwareentwicklung mit Datenbanken und Containern.
 
 ---
 
 ## 1. Vorbereitung: Docker bereinigen
 
-Um sicherzustellen, dass Sie mit einer sauberen Basis starten, führen Sie bitte folgende Befehle aus:
+Um mit einer sauberen Umgebung zu starten und eventuelle Konflikte mit alten Containern, Images oder Volumes zu vermeiden, empfehlen wir folgende Befehle auszuführen:
 
 ```bash
 # (Optional, aber empfohlen) Alte Docker-Container, Images und Builder entfernen
@@ -18,9 +16,11 @@ docker image prune --all --force
 docker volume prune --force
 ```
 
+Damit wird sichergestellt, dass das Projekt auf einem „frischen“ Stand startet und alle Komponenten neu aufgebaut werden.
+
 ---
 
-## 2. Projekt herunterladen
+## 2. Projekt klonen
 
 ```bash
 git clone https://github.com/Barosaurus/mariadb-docker-library-system.git
@@ -29,136 +29,136 @@ cd mariadb-docker-library-system
 
 ---
 
-## 3. Projekt starten / Projekt beenden
+## 3. .env Datei konfigurieren
 
-```bash
-#Programm starten
-docker compose up --build
+Im Ordner `backend/` wird eine Datei `.env` mit den Datenbank-Zugangsdaten benötigt:
+
+**Pfad:**  
+```
+backend/.env
 ```
 
-```bash
-#Programm beenden
-docker compose down
+**Beispiel-Inhalt:**  
+```env
+DATABASE_URL=mysql+pymysql://library_user:library_pass123@mariadb:3306/library_system
 ```
+
+Wir nutzen die `.env`-Datei, um die Zugangsdaten zentral und einfach verwaltbar zu halten. In der Praxis würden diese Daten natürlich nicht unverschlüsselt oder öffentlich in einer README stehen – für den PoC und die Nachvollziehbarkeit ist das hier aber bewusst so gewählt.
 
 ---
 
-## 4. API testen & nutzen
+## 4. Container starten & stoppen
 
-Öffnen Sie die Swagger-UI im Browser:
-[http://localhost:8000/docs](http://localhost:8000/docs)
+```bash
+# Container und Abhängigkeiten bauen und starten
+docker compose up --build
 
-**Beispiele für API-Requests:**
+# Container stoppen
+docker compose down
+```
 
-### Books (Bücher)
+*Bei Code-Änderungen: `docker compose up --build` neu ausführen.*
+
+---
+
+## 5. API-Dokumentation & Test
+
+- Swagger-UI: [http://localhost:8000/docs](http://localhost:8000/docs)
+- Health Check: [http://localhost:8000/health](http://localhost:8000/health)
+- Direktzugriff: [http://localhost:8000/](http://localhost:8000/)
+
+---
+
+## 🧪 Beispiel-API-Requests
+
+**Bücher**
 ```bash
 # Alle Bücher abrufen
-curl -L "http://localhost:8000/api/books"
+curl -X GET "http://localhost:8000/api/books/"
 
-# Nach Autor suchen
-curl -L "http://localhost:8000/api/books?author=Douglas%20Adams"
-
-# Nach Kategorie filtern
-curl -L "http://localhost:8000/api/books?category=Informatik"
-
-# Buch hinzufügen
-curl -L -X POST "http://localhost:8000/api/books" \
+# Buch anlegen
+curl -X POST "http://localhost:8000/api/books/" \
   -H "Content-Type: application/json" \
   -d '{"isbn":"9783161484100","title":"Beispielbuch","author":"Max Autor","category":"Technik","publication_year":2023,"total_copies":2,"available_copies":2}'
 ```
 
-### Users (Benutzer)
+**Benutzer**
 ```bash
 # Alle Benutzer abrufen
-curl -L "http://localhost:8000/api/users"
+curl -X GET "http://localhost:8000/api/users/"
 
-# Benutzer anlegen (user_number ist Pflichtfeld)
-curl -L -X POST "http://localhost:8000/api/users" \
+# Benutzer anlegen (user_number ist Pflicht)
+curl -X POST "http://localhost:8000/api/users/" \
   -H "Content-Type: application/json" \
   -d '{"user_number":"STU999","first_name":"Jan","last_name":"Schlappen","email":"jan@uni.de","phone":"122333","status":"active"}'
-
-# Einzelnen Benutzer abrufen
-curl -L "http://localhost:8000/api/users/1"
 ```
 
-### Loans (Ausleihen)
+**Ausleihe**
 ```bash
-# Alle Ausleihen anzeigen
-curl -L "http://localhost:8000/api/loans"
-
-# Buch ausleihen (Fälligkeitsdatum in YYYY-MM-DD Format)
-curl -L -X POST "http://localhost:8000/api/loans" \
+# Buch ausleihen
+curl -X POST "http://localhost:8000/api/loans/" \
   -H "Content-Type: application/json" \
-  -d '{"user_id":1,"book_id":1,"due_date":"2025-09-02"}'
+  -d '{"user_number":"STU003","book_isbn":"9783161484100","due_date":"2025-09-02"}'
 
-# Buch zurückgeben (loan_id durch tatsächliche ID ersetzen)
-curl -L -X PUT "http://localhost:8000/api/loans/1/return"
+# Buch zurückgeben
+curl -X PUT "http://localhost:8000/api/loans/1/return/"
 ```
 
-### Health Check
+**System-Status**
 ```bash
-# System-Status prüfen
-curl -L "http://localhost:8000/health"
+curl -X GET "http://localhost:8000/health"
 ```
 
-**Die interaktive API-Dokumentation mit "Try it out"-Funktionalität ist in der Swagger-UI unter http://localhost:8000/docs verfügbar.**
+---
+
+## 🏷️ Funktionen im Überblick
+
+- **Bücherverwaltung:** 
+  - Hinzufügen, Anzeigen, Bearbeiten und Löschen von Büchern (CRUD)
+  - Verwaltung von verfügbaren und ausgeliehenen Exemplaren
+  - Such- und Filtermöglichkeiten (z.B. nach Autor, Kategorie, ISBN)
+- **Benutzerverwaltung:** 
+  - Hinzufügen, Bearbeiten und Löschen von Nutzern
+  - Nutzerinformationen wie Name, E-Mail, Telefonnummer und Status werden gespeichert
+  - Eingaben werden auf grundlegende Gültigkeit geprüft (z.B. E-Mail-Syntax)
+- **Ausleihsystem:** 
+  - Erfassen von Ausleihen und Rückgaben
+  - Beim Ausleihen wird die Anzahl verfügbarer Exemplare automatisch reduziert, bei Rückgabe wieder erhöht
+  - Ausleihen können nach Fälligkeitsdatum gefiltert werden; überfällige Ausleihen werden angezeigt, jedoch erfolgt keine automatische Benachrichtigung oder Sanktion
+- **Fehlerbehandlung:** 
+  - Sinnvolle Fehlermeldungen bei ungültigen oder fehlenden Eingaben (z.B. Pflichtfelder, Datumsformat, nicht vorhandene Entitäten)
+- **API-Dokumentation:** 
+  - Interaktive Dokumentation und Testmöglichkeit durch Swagger-UI
+- **Health Check:** 
+  - Überprüfung des System- und Datenbankstatus
+- **Initialbefüllung:** 
+  - Die Datenbank wird beim ersten Start automatisch mit Beispieldaten befüllt
 
 ---
 
-## 5. Funktionen des Systems
+## 🗄️ Datenbankzugriff
 
-### Bücherverwaltung
-- **CRUD-Operationen**: Bücher erstellen, anzeigen, bearbeiten und löschen
-- **Suchfunktionen**: Filter nach ISBN, Titel, Autor oder Kategorie
-- **Bestandsverwaltung**: Automatische Verwaltung verfügbarer und ausgeliehener Exemplare
-
-### Benutzerverwaltung
-- **Benutzerregistrierung**: Neue Nutzer mit eindeutiger Benutzernummer anlegen
-- **Status-Management**: Benutzer können aktiv, inaktiv oder gesperrt sein
-- **Kontaktdaten**: E-Mail und Telefonnummer werden validiert
-
-### Ausleihsystem
-- **Buch ausleihen**: Automatische Reduzierung verfügbarer Exemplare
-- **Rückgabe**: Rückgabedatum wird gesetzt, Exemplare wieder verfügbar
-- **Überfällige Ausleihen**: Automatische Erkennung basierend auf Fälligkeitsdatum
-- **Verlauf**: Vollständige Nachverfolgung aller Ausleihvorgänge
-
-### Zusätzliche Features
-- **Health Check**: System- und Datenbankstatus prüfen
-- **Swagger-UI**: Interaktive API-Dokumentation
-- **Validation**: Automatische Eingabevalidierung und Fehlerbehandlung
+- **phpMyAdmin:** [http://localhost:8080](http://localhost:8080)
+- **Direkte Verbindung:** `localhost:3306`  
+  z.B. mit Tools wie DBeaver, HeidiSQL oder MySQL Workbench
 
 ---
 
-## 6. Wichtige Hinweise
+## ⚠️ Hinweise
 
-- Die Datenbank wird beim ersten Start automatisch mit Beispieldaten gefüllt
-- Änderungen am Code erfordern einen Neustart mit `docker compose up --build`
-- Die API unterstützt sowohl die Swagger-UI als auch direkte curl-Befehle
-- Alle Datumsangaben erfolgen im Format YYYY-MM-DD
-- E-Mail-Adressen und ISBN werden automatisch validiert
+- Datumsangaben verwenden das Format `YYYY-MM-DD`
+- Bei Benutzer-E-Mails und ISBN erfolgt eine grundlegende Syntaxprüfung, jedoch keine tiefergehende Validierung
+- Änderungen am Code erfordern einen Neustart des Containers
+- Die Umgebung ist vollständig reproduzierbar und benötigt keine lokale Datenbankinstallation
+
+---
+
+## 🗝️ Standard-Datenbank-Zugangsdaten
+
+- **Benutzer:** `library_user`
+- **Passwort:** `library_pass123`
+- **Datenbank:** `library_system`
 
 ---
 
-## 7. Systemzugang
-
-### API-Endpunkte
-- **Swagger-UI**: http://localhost:8000/docs
-- **Health Check**: http://localhost:8000/health
-- **Root**: http://localhost:8000/
-
-### Datenbank-Zugang
-- **phpMyAdmin**: http://localhost:8080
-- **Direkte Verbindung**: localhost:3306
-
-- Keine lokale Datenbankinstallation nötig
-- Reproduzierbare Umgebung für Entwicklung und Tests
-- Einfaches Deployment
-
-## Datenbank-Zugangsdaten
-
-- Nutzer: `library_user`
-- Passwort: `library_pass123`
-- Datenbank: `library_system`
-
----
+**Das System bietet eine moderne, containerisierte Lösung für die Verwaltung von Bibliotheksdaten mit Fokus auf Erweiterbarkeit und Praxisnähe.**

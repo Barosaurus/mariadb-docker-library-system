@@ -2,8 +2,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
+from dotenv import load_dotenv
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "mysql+pymysql://library_user:library_pass123@mariadb:3306/library_system")
+load_dotenv()
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
