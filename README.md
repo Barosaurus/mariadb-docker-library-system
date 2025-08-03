@@ -118,13 +118,14 @@ curl -X GET "http://localhost:8000/health"
   - Verwaltung von verfügbaren und ausgeliehenen Exemplaren
   - Such- und Filtermöglichkeiten (z.B. nach Autor, Kategorie, ISBN)
 - **Benutzerverwaltung:** 
-  - Hinzufügen, Bearbeiten und Löschen von Nutzern
+  - Hinzufügen, Anzeigen, Bearbeiten und Löschen von Nutzern (CRUD)
   - Nutzerinformationen wie Name, E-Mail, Telefonnummer und Status werden gespeichert
   - Eingaben werden auf grundlegende Gültigkeit geprüft (z.B. E-Mail-Syntax)
 - **Ausleihsystem:** 
+  - Hinzufügen, Anzeigen, Bearbeiten und Löschen von Loans (CRUD)
   - Erfassen von Ausleihen und Rückgaben
   - Beim Ausleihen wird die Anzahl verfügbarer Exemplare automatisch reduziert, bei Rückgabe wieder erhöht
-  - Ausleihen können nach Fälligkeitsdatum gefiltert werden; überfällige Ausleihen werden angezeigt, jedoch erfolgt keine automatische Benachrichtigung oder Sanktion
+  - Ausleihen können nach Fälligkeitsdatum gefiltert werden; überfällige Ausleihen werden angezeigt (es erfolgt keine automatische Benachrichtigung oder Sanktion o.Ä.)
 - **Fehlerbehandlung:** 
   - Sinnvolle Fehlermeldungen bei ungültigen oder fehlenden Eingaben (z.B. Pflichtfelder, Datumsformat, nicht vorhandene Entitäten)
 - **API-Dokumentation:** 
@@ -162,3 +163,33 @@ curl -X GET "http://localhost:8000/health"
 ---
 
 **Das System bietet eine moderne, containerisierte Lösung für die Verwaltung von Bibliotheksdaten mit Fokus auf Erweiterbarkeit und Praxisnähe.**
+
+---
+---
+
+## 🧑‍🔬 Performance-Messungen (Deployment & Ressourcenverbrauch)
+
+Im Rahmen der Evaluierung des Systems wurden automatisierte Performance-Messungen integriert. Dabei wollen wir die Deployment-Zeit und den Ressourcenverbrauch der Container-Lösung erfassen und diese Werte in unserer Hausarbeit mit Literaturwerten zu klassischen VMs vergleichen.
+
+### Ablauf
+
+1. **Deployment-Zeit messen**  
+   - Das Skript `performance/deployment_time.py` startet den gesamten Docker-Stack und misst die Startdauer.
+   - Ergebnis: `performance/deployment_result.txt` (wird bei jedem Durchlauf überschrieben).
+
+2. **RAM/CPU-Verbrauch messen**  
+   - Das Skript `performance/resources.py` erfasst nach dem Start den aktuellen Ressourcenverbrauch aller wichtigen Container.
+   - Ergebnisse:  
+     - `performance/resource_result.csv` (tabellarisch, z.B. für Diagramme)
+     - `performance/resource_result.txt` (lesbar für Fließtext)
+   - Auch diese Dateien werden bei jedem Lauf überschrieben.
+
+### Vorgehen
+
+- Die Mess-Skripte werden aus dem Projekt-Root mit `python3` ausgeführt:
+  ```bash
+  python3 performance/deployment_time.py
+  python3 performance/resources.py
+  ```
+- Die Ergebnisdateien liegen automatisch im Ordner `performance/` 
+- Alte Messwerte werden beim nächsten Durchlauf überschrieben

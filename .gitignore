@@ -21,3 +21,6 @@ dist/
 
 # VS Code
 .vscode/
+performance/deployment_result.txt
+performance/resource_result.csv
+performance/resource_result.txt
